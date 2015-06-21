@@ -1,0 +1,52 @@
+#!/bin/bash
+
+me=`basename "$0"`
+
+function log {
+    echo "[$(date)] [$me]: $*"
+}
+
+source $(dirname $0)/checkJava.sh
+
+_java="$(cat /tmp/java_path.txt)"
+
+mkdir -p /var/log/[[artifactId]]/
+chmod -R 755 /var/log/[[artifactId]]/
+
+###
+# http://askubuntu.com/questions/101962/script-to-only-execute-during-first-install-of-a-package
+###
+
+if [ -z "$2" ]; then
+  log "Clean installation, no actions"
+else
+
+  ###
+  # http://bash.cyberciti.biz/guide/The_case_statement
+  ###
+
+    case $1 in
+      upgrade)
+          upgrade_param_version="${2%~*}"
+          to_be_installed=[[version]]
+          to_be_installed="${to_be_installed%~*}"
+
+          log "upgrade parameter verion: ${upgrade_param_version}, install package version $to_be_installed"
+
+          if [[ "$upgrade_param_version" > "$to_be_installed" ]]; then
+            log "upgrade parameter version ${upgrade_param_version} is greater than install package version $to_be_installed. Rolling back to $to_be_installed..."
+
+            $_java -jar /opt/acme/jars/[[artifactId]].jar -rollback $to_be_installed
+
+          elif [[ "$upgrade_param_version" < "$to_be_installed" ]]; then
+            log "upgrade parameter version ${upgrade_param_version} is less than install package version $to_be_installed. Upgrading to $to_be_installed..."
+          else
+            log "upgrade parameter version ${upgrade_param_version} is equal to install package version $to_be_installed. No actions."
+          fi
+        ;;
+      *)
+          log "Arguments: $@"
+    esac
+fi
+
+log "Done. Arguments: $@, package version  [[version]]"

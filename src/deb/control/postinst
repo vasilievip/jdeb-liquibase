@@ -1,0 +1,15 @@
+#!/bin/bash
+
+me=`basename "$0"`
+
+function log {
+    echo "[$(date)] [$me]: $*"
+}
+
+_java="$(cat /tmp/java_path.txt)"
+
+$_java -jar /opt/acme/jars/[[artifactId]].jar -update
+
+log "Done. Arguments: $@, package version  [[version]]"
+
+
